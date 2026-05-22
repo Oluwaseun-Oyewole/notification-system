@@ -52,29 +52,8 @@ export class EmailWorkerProcessor extends WorkerHost {
         { id: notificationId },
         { status: NotificationStatus.QUEUED },
       );
-      throw error; // re-throw for BullMQ to schedule the retry
+      throw error;
     }
-
-    // const notification = await this.notificationRepository.findOne({
-    //   where: { id: notificationId },
-    // });
-
-    // if (!notification) {
-    //   return;
-    // }
-
-    // if (notification.status === NotificationStatus.SENT) {
-    //   this.logger.log(
-    //     `Notification ${notificationId} already sent, skipping...`,
-    //   );
-    //   return;
-    // }
-    // await this.mailService.send({
-    //   to,
-    //   subject,
-    //   template,
-    //   context,
-    // });
   }
 
   @OnWorkerEvent('completed')
@@ -112,7 +91,5 @@ export class EmailWorkerProcessor extends WorkerHost {
       retryCount: notification.retryCount + 1,
       failureReason: error instanceof Error ? error.message : String(error),
     });
-
-    console.log({ error });
   }
 }

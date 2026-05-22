@@ -25,7 +25,7 @@ export const typeormConfigOptions: DataSourceOptions = {
     max: isProduction ? 20 : 5,
     min: isProduction ? 5 : 1,
     idleTimeoutMillis: 30_000,
-    connectionTimeoutMillis: 5_000, // fail fast if DB unreachable
+    connectionTimeoutMillis: 5_000,
   },
 };
 

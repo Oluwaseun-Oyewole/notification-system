@@ -1,5 +1,5 @@
 import { InjectQueue } from '@nestjs/bullmq';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
@@ -17,7 +17,6 @@ const BATCH_SIZE = 50;
 
 @Injectable()
 export class OutboxEventPollerService {
-  private readonly logger = new Logger(OutboxEventPollerService.name);
   private isPolling = false;
   constructor(
     @InjectRepository(OutboxEvent)
@@ -40,13 +39,7 @@ export class OutboxEventPollerService {
         order: { createdAt: 'ASC' },
         take: BATCH_SIZE,
       });
-      this.logger.log(`Polled ${events.length} outbox events`);
       await Promise.allSettled(events.map((event) => this.processBatch(event)));
-    } catch (error) {
-      this.logger.error(
-        'Error polling outbox',
-        error instanceof Error ? error.stack : String(error),
-      );
     } finally {
       this.isPolling = false;
     }
@@ -90,9 +83,7 @@ export class OutboxEventPollerService {
   }
   private async enqueueEmail(notificationId: string, payload: EmailPayloadDto) {
     if (!payload.template) {
-      console.warn(
-        `No email template provided for notification ${notificationId}, using default 'welcome' template.`,
-      );
+      return;
     }
 
     const queuePayloads = {
