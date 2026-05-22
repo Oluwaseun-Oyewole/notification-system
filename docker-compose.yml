@@ -1,0 +1,127 @@
+services:
+  # auth-service:
+  #   image: ghcr.io/oluwaseun-oyewole/nest-auth-service:sha-d1b431b
+  #   volumes:
+  #     - ./.env.auth:/app/.env
+  #   # env_file: .env.auth # env file for the auth service secrets
+  #   ports:
+  #     - '3001:3000'
+  #   networks:
+  #     - notifications
+  #   depends_on:
+  #     auth_postgres:
+  #       condition: service_healthy
+  #     auth_redis:
+  #       condition: service_healthy
+  #     # - nest-auth-service_auth
+
+  # auth_postgres:
+  #   image: postgres:16
+  #   environment:
+  #     POSTGRES_USER: admin
+  #     POSTGRES_PASSWORD: secret
+  #     POSTGRES_DB: auth
+  #   networks:
+  #     - notifications
+  #   healthcheck:
+  #     test: ['CMD-SHELL', 'pg_isready -U admin -d auth']
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 10
+
+  # auth_redis:
+  # image: redis:latest
+  # networks:
+  #   - notifications
+  # healthcheck:
+  #   test: ['CMD', 'redis-cli', 'ping']
+  #   interval: 5s
+  #   timeout: 3s
+  #   retries: 10
+
+  notifications_app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: notifications_app_container
+    ports:
+      - '3005:3005'
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - notifications
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    container_name: pg_notifications_container
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: notifications
+    ports:
+      - '5432:5432'
+    volumes:
+      - notifications_data:/var/lib/postgresql/data
+    networks:
+      - notifications
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U admin -d notifications']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_notifications_container
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - '8080:80'
+    networks:
+      - notifications
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  redis:
+    image: redis:latest
+    container_name: redis_notifications_container
+    ports:
+      - '6379:6379'
+    networks:
+      - notifications
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: redisinsight_notifications_container
+    ports:
+      - '5540:5540'
+    networks:
+      - notifications
+    depends_on:
+      redis:
+        condition: service_healthy
+
+networks:
+  notifications:
+    driver: bridge
+
+volumes:
+  notifications_data:

@@ -1,0 +1,5 @@
+const DEFAULT_TIMEOUT_MS = 20_000;
+const NOTIFICATION_QUEUE = 'notification';
+const EMAIL_JOB = 'send_email';
+
+export { DEFAULT_TIMEOUT_MS, EMAIL_JOB, NOTIFICATION_QUEUE };
