@@ -9,7 +9,6 @@ import {
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './shared/exceptions/global.exceptions';
 import { LoggingInterceptor } from './shared/interceptors/logger.interceptor';
-import { SuccessResponseInterceptor } from './shared/interceptors/success.response.interceptor';
 import { TimeoutInterceptor } from './shared/interceptors/timeout.interceptor';
 
 async function bootstrap() {
@@ -28,7 +27,7 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(
     new LoggingInterceptor(),
-    new SuccessResponseInterceptor(reflector),
+    // new SuccessResponseInterceptor(reflector),
     new TimeoutInterceptor(reflector),
   );
 

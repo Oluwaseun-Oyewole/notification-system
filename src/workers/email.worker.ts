@@ -67,7 +67,6 @@ export class EmailWorkerProcessor extends WorkerHost {
 
   @OnWorkerEvent('failed')
   async onFailed(job: Job<EmailJobPayload>, error: Error) {
-    console.log(job.attemptsMade, job.opts.attempts);
     const isFinalAttempt = job.attemptsMade >= job.opts.attempts - 1;
 
     if (!isFinalAttempt) {

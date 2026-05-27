@@ -39,26 +39,22 @@ export class OutboxEventPollerService {
         order: { createdAt: 'ASC' },
         take: BATCH_SIZE,
       });
-      await Promise.allSettled(events.map((event) => this.processBatch(event)));
+      await Promise.allSettled(events.map((event) => this.processJob(event)));
     } finally {
       this.isPolling = false;
     }
   }
 
-  private async processBatch(event: OutboxEvent) {
+  private async processJob(event: OutboxEvent) {
     try {
       const { notificationId, channel, payload } = event.payload as {
         notificationId: string;
         channel: NotificationChannel;
         payload: any;
       };
-      switch (channel) {
-        case NotificationChannel.EMAIL:
-          await this.enqueueEmail(notificationId, payload as EmailPayloadDto);
-          break;
 
-        default:
-          break;
+      if (channel === NotificationChannel.EMAIL) {
+        await this.enqueueEmail(notificationId, payload as EmailPayloadDto);
       }
 
       await this.dataSource.transaction(async (manager) => {
@@ -86,14 +82,17 @@ export class OutboxEventPollerService {
       return;
     }
 
+    // const context =
+    //   payload.body && typeof payload.body === 'object'
+    //     ? (payload.body as Record<string, any>)
+    //     : { message: String(payload.body ?? '') };
+
     const queuePayloads = {
       notificationId,
       to: payload.to,
       subject: payload.subject,
       template: payload.template ?? 'welcome',
-      context: {
-        body: payload.body,
-      },
+      context: payload.context,
     };
 
     await this.notificationQueue.add(

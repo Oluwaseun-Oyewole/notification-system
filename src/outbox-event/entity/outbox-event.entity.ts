@@ -12,6 +12,11 @@ export enum OutboxEventStatus {
   FAILED = 'failed',
 }
 
+export enum EventType {
+  SEND_NOTIFICATION = 'send_notification',
+  USER_REGISTRATION = 'user_registration',
+}
+
 @Entity({ name: 'outbox_events' })
 export class OutboxEvent {
   @PrimaryGeneratedColumn('uuid')
@@ -27,6 +32,12 @@ export class OutboxEvent {
     default: OutboxEventStatus.PENDING,
   })
   status: OutboxEventStatus;
+
+  @Column({
+    type: 'enum',
+    enum: EventType,
+  })
+  eventType: EventType;
 
   // Snapshot of what to enqueue — decoupled from the notification row
   @Column({ type: 'jsonb' })

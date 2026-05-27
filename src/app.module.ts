@@ -5,10 +5,14 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { typeormConfigOptions } from './config/typeorm.config';
 import { IntegrationsModule } from './integrations/integrations.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { OtpModule } from './otp/otp.module';
 import { OutboxEventModule } from './outbox-event/outbox-event.module';
+import { RedisModule } from './redis/redis.module';
+import { SessionsModule } from './sessions/sessions.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -26,7 +30,7 @@ import { UsersModule } from './users/users.module';
         backoff: {
           type: 'exponential',
           delay: 5000,
-          jitter: 1000,
+          jitter: 1,
         },
       },
     }),
@@ -39,6 +43,11 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     IntegrationsModule,
     OutboxEventModule,
+    AuthModule,
+    RedisModule,
+    OtpModule,
+    SessionsModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

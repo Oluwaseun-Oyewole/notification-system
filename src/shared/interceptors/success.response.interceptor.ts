@@ -31,14 +31,14 @@ export class SuccessResponseInterceptor<T> implements NestInterceptor<
       ]) ?? 'Request successful';
 
     return next.handle().pipe(
-      map((payload) => {
+      map((data) => {
         return {
           success: true,
           statusCode: response.statusCode,
           message,
           timestamp: new Date().toISOString(),
           path: request.url,
-          payload,
+          data,
         };
       }),
     );

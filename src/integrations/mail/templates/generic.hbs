@@ -2,7 +2,6 @@
   <head>
     <meta charset='utf-8' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
-    <title>{{subject}}</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -53,18 +52,11 @@
   </head>
   <body>
     <div class='container'>
-      <div class='header'>
-        <h1>{{subject}}</h1>
-      </div>
       <div class='body'>
-        <p>Hi <strong>{{name}}</strong>,</p>
         <p>{{message}}</p>
         {{#if actionUrl}}
           <a href='{{actionUrl}}' class='cta'>{{actionLabel}}</a>
         {{/if}}
-      </div>
-      <div class='footer'>
-        <p>© {{year}} MyApp. All rights reserved.</p>
       </div>
     </div>
   </body>

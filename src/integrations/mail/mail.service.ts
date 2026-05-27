@@ -12,7 +12,7 @@ export interface SendMailOptions {
 export class MailService {
   constructor(private readonly mailerService: MailerService) {}
 
-  async send(options: SendMailOptions): Promise<void> {
+  async send(options: SendMailOptions) {
     const { to, subject, template, context } = options;
 
     await this.mailerService.sendMail({

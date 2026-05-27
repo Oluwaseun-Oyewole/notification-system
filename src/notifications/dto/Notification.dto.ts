@@ -43,7 +43,12 @@ export class EmailPayloadDto {
 
   @IsString()
   @IsNotEmpty()
-  body: string;
+  @IsOptional()
+  body?: string | Record<string, any>;
+
+  @IsOptional()
+  @IsObject()
+  context?: Record<string, any>;
 
   @IsOptional()
   template?: string;

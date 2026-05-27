@@ -14,7 +14,7 @@ export const typeormConfigOptions: DataSourceOptions = {
   username: configService.get<string>('DB_USER'),
   password: configService.get<string>('DB_PASSWORD'),
   database: configService.get<string>('DB_NAME'),
-  synchronize: false,
+  synchronize: true,
 
   entities: [`${__dirname}/../**/*.entity{.ts,.js}`],
   migrations: [`${__dirname}/../migrations/migrations/*{.ts,.js}`],

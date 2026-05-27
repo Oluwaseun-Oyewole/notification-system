@@ -18,7 +18,7 @@ export class DuplicateResourceException extends AppException {
       `${resource} with ${id} already exists`,
       HttpStatus.CONFLICT,
       'DUPLICATE_RESOURCE',
-      { resource, id },
+      { resource, value: id },
     );
   }
 }
@@ -90,5 +90,15 @@ export class ForbiddenException extends AppException {
 export class BadRequestException extends AppException {
   constructor(message: string, type: string = 'BAD_REQUEST') {
     super(message, HttpStatus.BAD_REQUEST, type);
+  }
+}
+
+export class InvalidCredentialsException extends AppException {
+  constructor() {
+    super(
+      'Invalid credentials provided',
+      HttpStatus.UNAUTHORIZED,
+      'INVALID_CREDENTIALS',
+    );
   }
 }

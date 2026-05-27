@@ -23,6 +23,7 @@ export enum NotificationStatus {
 }
 
 export enum NotificationType {
+  USER_REGISTRATION = 'user_registration',
   WELCOME = 'welcome',
   PASSWORD_RESET = 'password_reset',
   PROMOTION = 'promotion',
@@ -33,9 +34,9 @@ export class Notification {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  // @Index()
-  // @Column({ name: 'user_id' })
-  // userId: string;
+  @Index()
+  @Column({ name: 'user_id' })
+  userId: string;
 
   @Column({ type: 'enum', enum: NotificationType })
   type: NotificationType;
