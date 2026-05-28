@@ -1,4 +1,12 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { Public } from 'src/shared/decorators/pubic.decorator';
@@ -13,6 +21,7 @@ import {
 } from 'src/users/dto/user.dto';
 import { AuthService } from './auth.service';
 import { RegisterResponseDto } from './dto/auth.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JWTRefreshTokenGuard } from './guards/jwt-refresh.guard';
 
 @ApiTags('Authentication')
@@ -32,6 +41,7 @@ export class AuthController {
 
   @Public()
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   async login(@Body() data: LoginDto, @Req() req: Request) {
     const resp = await this.authService.login(data, req);
     return ResponseBuilder.success(resp, 'Login successful');
@@ -55,6 +65,8 @@ export class AuthController {
   }
 
   @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
   async logout(
     @CurrentUser() user: { sub: string; sessionId: string; family: string },
   ) {
@@ -63,6 +75,7 @@ export class AuthController {
   }
 
   @Post('refresh-token')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JWTRefreshTokenGuard)
   async refreshTokens(
     @GetToken() refreshToken: string,

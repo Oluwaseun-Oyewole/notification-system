@@ -1,7 +1,21 @@
-# ─── Config — edit these ─────────────────────────────────────────────────────
-BASE_URL="http://localhost:3008"  
-TEST_EMAIL="findseunoyewole@example.com"
-TEST_PASSWORD="Seun2023@"
+
+# ─── Config — load from .env with fallbacks ──────────────────────────────────
+ENV_FILE="${1:-//Users/mac/Desktop/backend/nest-notification-system/.env}"
+
+if [[ -f "$ENV_FILE" ]]; then
+  export $(grep -v '^#' "$ENV_FILE" | xargs)
+fi
+
+# Use value from .env if it exists, otherwise fall back to defaults
+BASE_URL="${BASE_URL:-http://localhost:${PORT:-3008}}"
+TEST_EMAIL="${TEST_EMAIL:-testuser@example.com}"
+TEST_PASSWORD="${TEST_PASSWORD:-Test@1234!}"
+
+# # ─── Config — edit these ─────────────────────────────────────────────────────
+
+# BASE_URL="http://localhost:3008"  
+# TEST_EMAIL="findseunoyewole@gmail.com"
+# TEST_PASSWORD="Seun2023@"
 
 # ─── Colour helpers ──────────────────────────────────────────────────────────
 GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[1;33m'
@@ -115,25 +129,25 @@ fi
 # call GET /auth/profile "" 200 "Get profile (authenticated)"
 
 
-# section "5. Login with wrong password"
+section "5. Login with wrong password"
 
-# call POST /auth/login \
-#   "{\"email\":\"$TEST_EMAIL\",\"password\":\"wrongpassword\"}" \
-#   401 "Login with wrong password (expect 401)"
-
-
-# section "6. Login with non-existent user"
-
-# call POST /auth/login \
-#   "{\"email\":\"ghost@example.com\",\"password\":\"$TEST_PASSWORD\"}" \
-#   401 "Login with unknown email (expect 401)"
+call POST /api/v1/auth/login \
+  "{\"email\":\"$TEST_EMAIL\",\"password\":\"wrongpassword\"}" \
+  401 "Login with wrong password (expect 401)"
 
 
-# section "7. Register duplicate email"
+section "6. Login with non-existent user"
 
-# call POST /auth/register \
-#   "{\"email\":\"$TEST_EMAIL\",\"password\":\"$TEST_PASSWORD\"}" \
-#   409 "Duplicate registration (expect 409)"
+call POST /api/v1/auth/login \
+  "{\"email\":\"ghost@example.com\",\"password\":\"$TEST_PASSWORD\"}" \
+  401 "Login with unknown email (expect 401)"
+
+
+section "7. Register duplicate email"
+
+call POST /api/v1/auth/register \
+  "{\"email\":\"$TEST_EMAIL\",\"password\":\"$TEST_PASSWORD\"}" \
+  409 "Duplicate registration (expect 409)"
 
 
 # section "8. Access protected route without token"
@@ -142,7 +156,7 @@ fi
 # SAVED_TOKEN="$ACCESS_TOKEN"
 # ACCESS_TOKEN=""
 
-# call GET /auth/profile "" 401 "No token → expect 401"
+# call GET /api/v1/auth/profile "" 401 "No token → expect 401"
 
 # Restore token
 # ACCESS_TOKEN="$SAVED_TOKEN"
@@ -153,7 +167,7 @@ fi
 # SAVED_TOKEN="$ACCESS_TOKEN"
 # ACCESS_TOKEN="fake.invalid.token"
 
-# call GET /auth/profile "" 401 "Fake token → expect 401"
+# call GET /api/v1/auth/profile "" 401 "Fake token → expect 401"
 
 # ACCESS_TOKEN="$SAVED_TOKEN"
 
@@ -161,7 +175,7 @@ fi
 # section "10. Refresh Token"
 
 # if [[ -n "$REFRESH_TOKEN" ]]; then
-#   REFRESH_RESPONSE=$(call POST /auth/refresh \
+#   REFRESH_RESPONSE=$(call POST /api/v1/auth/refresh \
 #     "{\"refreshToken\":\"$REFRESH_TOKEN\"}" \
 #     200 "Refresh access token")
 
@@ -173,9 +187,9 @@ fi
 # fi
 
 
-# section "11. Logout"
+section "11. Logout"
 
-# call POST /auth/logout "" 200 "Logout"
+call POST /api/v1/auth/logout "" 200 "Logout"
 
 
 # =============================================================================
