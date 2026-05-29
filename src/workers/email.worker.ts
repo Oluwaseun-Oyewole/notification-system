@@ -3,11 +3,9 @@ import { Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Job } from 'bullmq';
 import { MailService } from 'src/integrations/mail/mail.service';
-import {
-  Notification,
-  NotificationStatus,
-} from 'src/notifications/entity/notification.entity';
-import { NOTIFICATION_QUEUE } from 'src/shared/config/index.config';
+import { Notification } from 'src/notifications/entity/notification.entity';
+import { EMAIL_QUEUE } from 'src/shared/config/index.config';
+import { NotificationStatus } from 'src/shared/enums/index.enums';
 import { Not, Repository } from 'typeorm';
 
 export interface EmailJobPayload {
@@ -18,7 +16,7 @@ export interface EmailJobPayload {
   context: Record<string, any>;
 }
 
-@Processor(NOTIFICATION_QUEUE, { concurrency: 5 })
+@Processor(EMAIL_QUEUE, { concurrency: 3 })
 export class EmailWorkerProcessor extends WorkerHost {
   private readonly logger = new Logger(EmailWorkerProcessor.name);
   constructor(
@@ -32,12 +30,12 @@ export class EmailWorkerProcessor extends WorkerHost {
   async process(job: Job<EmailJobPayload>) {
     const { notificationId, to, subject, template, context } = job.data;
 
-    const claim = await this.notificationRepository.update(
+    const notificationClaim = await this.notificationRepository.update(
       { id: notificationId, status: Not(NotificationStatus.SENT) },
       { status: NotificationStatus.IN_PROGRESS },
     );
 
-    if (claim.affected === 0) {
+    if (notificationClaim.affected === 0) {
       this.logger.log(
         `Notification ${notificationId} already sent/claimed — skipping job ${job.id}`,
       );

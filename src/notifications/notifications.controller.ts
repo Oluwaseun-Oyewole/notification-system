@@ -1,4 +1,5 @@
-import { Body, Controller, Headers, Post } from '@nestjs/common';
+import { Body, Controller, Headers, Post, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { NOTIFICATION_QUEUE } from 'src/shared/config/index.config';
 import { SuccessMessage } from 'src/shared/decorators/success.message.decorator';
 import { BadRequestException } from 'src/shared/exceptions/domain.exceptions';
@@ -9,6 +10,7 @@ import { NotificationsService } from './notifications.service';
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   @SuccessMessage('Notification processing started')
   async sendNotification(

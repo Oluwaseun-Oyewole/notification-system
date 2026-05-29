@@ -3,13 +3,22 @@ import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
-import { EmailPayloadDto } from 'src/notifications/dto/Notification.dto';
 import {
-  Notification,
+  EmailPayloadDto,
+  PushPayloadDto,
+} from 'src/notifications/dto/Notification.dto';
+import { Notification } from 'src/notifications/entity/notification.entity';
+import {
+  EMAIL_JOB,
+  EMAIL_QUEUE,
+  PUSH_JOB,
+  PUSH_QUEUE,
+} from 'src/shared/config/index.config';
+import {
   NotificationChannel,
   NotificationStatus,
-} from 'src/notifications/entity/notification.entity';
-import { EMAIL_JOB, NOTIFICATION_QUEUE } from 'src/shared/config/index.config';
+} from 'src/shared/enums/index.enums';
+import { convertDataToString } from 'src/shared/utils/index.utils';
 import { DataSource, Repository } from 'typeorm';
 import { OutboxEvent, OutboxEventStatus } from './entity/outbox-event.entity';
 
@@ -22,8 +31,11 @@ export class OutboxEventPollerService {
     @InjectRepository(OutboxEvent)
     private readonly outboxRepository: Repository<OutboxEvent>,
 
-    @InjectQueue(NOTIFICATION_QUEUE)
-    private readonly notificationQueue: Queue,
+    @InjectQueue(EMAIL_QUEUE)
+    private readonly emailQueue: Queue,
+
+    @InjectQueue(PUSH_QUEUE)
+    private readonly pushQueue: Queue,
 
     private readonly dataSource: DataSource,
   ) {}
@@ -55,6 +67,10 @@ export class OutboxEventPollerService {
 
       if (channel === NotificationChannel.EMAIL) {
         await this.enqueueEmail(notificationId, payload as EmailPayloadDto);
+      } else if (channel === NotificationChannel.FCM) {
+        await this.enqueuePush(notificationId, payload as PushPayloadDto);
+      } else {
+        throw new Error(`Unsupported notification channel: ${channel}`);
       }
 
       await this.dataSource.transaction(async (manager) => {
@@ -81,12 +97,6 @@ export class OutboxEventPollerService {
     if (!payload.template) {
       return;
     }
-
-    // const context =
-    //   payload.body && typeof payload.body === 'object'
-    //     ? (payload.body as Record<string, any>)
-    //     : { message: String(payload.body ?? '') };
-
     const queuePayloads = {
       notificationId,
       to: payload.to,
@@ -95,12 +105,22 @@ export class OutboxEventPollerService {
       context: payload.context,
     };
 
-    await this.notificationQueue.add(
+    await this.emailQueue.add(
       EMAIL_JOB,
       {
         ...queuePayloads,
       },
       { attempts: 3 },
     );
+  }
+
+  private async enqueuePush(notificationId: string, payload: PushPayloadDto) {
+    const queuePayload = {
+      notificationId,
+      title: payload.title,
+      body: payload.body,
+      data: convertDataToString(payload.data),
+    };
+    await this.pushQueue.add(PUSH_JOB, queuePayload, { attempts: 3 });
   }
 }

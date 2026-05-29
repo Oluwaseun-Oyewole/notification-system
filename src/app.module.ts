@@ -7,6 +7,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { typeormConfigOptions } from './config/typeorm.config';
+import { DevicesModule } from './devices/devices.module';
 import { IntegrationsModule } from './integrations/integrations.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { OtpModule } from './otp/otp.module';
@@ -42,6 +43,7 @@ import { UsersModule } from './users/users.module';
     NotificationsModule,
     UsersModule,
     IntegrationsModule,
+    DevicesModule,
     OutboxEventModule,
     AuthModule,
     RedisModule,

@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  EventType,
   OutboxEvent,
   OutboxEventStatus,
 } from 'src/outbox-event/entity/outbox-event.entity';
+import { NotificationStatus } from 'src/shared/enums/index.enums';
 import { DataSource, Repository } from 'typeorm';
 import { SendNotificationDto } from './dto/Notification.dto';
-import { Notification, NotificationStatus } from './entity/notification.entity';
+import { Notification } from './entity/notification.entity';
 
 @Injectable()
 export class NotificationsService {
@@ -47,6 +49,7 @@ export class NotificationsService {
 
         const outboxEvent = manager.create(OutboxEvent, {
           notificationId: notification.id,
+          eventType: EventType.SEND_NOTIFICATION,
           status: OutboxEventStatus.PENDING,
           payload: {
             notificationId: notification.id,
@@ -80,6 +83,7 @@ export class NotificationsService {
       });
       const outboxEvent = manager.create(OutboxEvent, {
         notificationId: notification.id,
+        eventType: EventType.SEND_NOTIFICATION,
         status: OutboxEventStatus.PENDING,
         payload: {
           notificationId: notification.id,

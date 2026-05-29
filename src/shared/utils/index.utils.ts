@@ -1,4 +1,6 @@
+import { ConfigService } from '@nestjs/config';
 import * as argon2 from 'argon2';
+import * as admin from 'firebase-admin';
 import * as crypto from 'node:crypto';
 
 export const generateLongToken = (): string => {
@@ -21,4 +23,33 @@ export const hashPassword = async (password: string) => {
     timeCost: 3,
     parallelism: 4,
   });
+};
+
+export const convertDataToString = (data?: Record<string, any>) => {
+  if (!data) {
+    return undefined;
+  }
+
+  return Object.entries(data).reduce((acc, [key, value]) => {
+    acc[key] = typeof value === 'string' ? value : JSON.stringify(value);
+    return acc;
+  }, {});
+};
+
+export const firebaseAdminProvider = {
+  provide: 'FIREBASE_ADMIN',
+  useFactory: (configService: ConfigService) => {
+    const defaultApp = admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: configService.get<string>('PROJECT_ID'),
+        clientEmail: configService.get<string>('CLIENT_EMAIL'),
+        privateKey: configService
+          .get<string>('PRIVATE_KEY')
+          ?.replace(/\\n/g, '\n'),
+      }),
+    });
+
+    return { defaultApp };
+  },
+  // inject: [ConfigService],
 };

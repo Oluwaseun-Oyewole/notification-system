@@ -5,6 +5,7 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  IsUUID,
 } from 'class-validator';
 import {
   NotificationChannel,
@@ -12,9 +13,9 @@ import {
 } from 'src/shared/enums/index.enums';
 
 export class SendNotificationDto {
-  // @IsUUID()
-  // @IsNotEmpty()
-  // userId: string;
+  @IsUUID()
+  @IsNotEmpty()
+  userId: string;
 
   @IsEnum(NotificationType)
   @IsNotEmpty()
@@ -30,7 +31,7 @@ export class SendNotificationDto {
 
   @IsOptional()
   @IsObject()
-  payload: Record<string, any>;
+  payload?: Record<string, any>;
 }
 
 export class EmailPayloadDto {
@@ -52,4 +53,18 @@ export class EmailPayloadDto {
 
   @IsOptional()
   template?: string;
+}
+
+export class PushPayloadDto {
+  @IsString()
+  @IsNotEmpty()
+  title: string;
+
+  @IsString()
+  @IsNotEmpty()
+  body: string;
+
+  @IsOptional()
+  @IsObject()
+  data?: Record<string, any>;
 }

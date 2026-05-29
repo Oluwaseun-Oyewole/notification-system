@@ -3,10 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { Request } from 'express';
-import {
-  Notification,
-  NotificationType,
-} from 'src/notifications/entity/notification.entity';
+import { Notification } from 'src/notifications/entity/notification.entity';
 import { OtpService } from 'src/otp/otp.service';
 import {
   EventType,
@@ -16,6 +13,7 @@ import { SessionsService } from 'src/sessions/sessions.service';
 import {
   NotificationChannel,
   NotificationStatus,
+  NotificationType,
 } from 'src/shared/enums/index.enums';
 import {
   BadRequestException,
@@ -55,7 +53,7 @@ export class AuthService {
 
       const notification = manager.create(Notification, {
         userId: user.id,
-        type: NotificationType.USER_REGISTRATION,
+        type: NotificationType.EMAIL,
         channel: NotificationChannel.EMAIL,
         status: NotificationStatus.PENDING,
 
@@ -94,7 +92,7 @@ export class AuthService {
 
     if (!user.activatedAt) {
       throw new ForbiddenException(
-        'Your account is not activated. Please check your email for the activation details',
+        'Account not activated. Check your email for the activation details',
         'ACTIVATION_REQUIRED',
       );
     }
@@ -144,7 +142,7 @@ export class AuthService {
     await this.dataSource.transaction(async (manager) => {
       const notification = manager.create(Notification, {
         userId: user.id,
-        type: NotificationType.USER_REGISTRATION,
+        type: NotificationType.EMAIL,
         channel: NotificationChannel.EMAIL,
         status: NotificationStatus.PENDING,
         payload: {

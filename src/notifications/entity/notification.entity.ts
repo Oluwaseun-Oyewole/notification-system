@@ -1,4 +1,9 @@
 import {
+  NotificationChannel,
+  NotificationStatus,
+  NotificationType,
+} from 'src/shared/enums/index.enums';
+import {
   Column,
   CreateDateColumn,
   Entity,
@@ -6,28 +11,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-
-export enum NotificationChannel {
-  EMAIL = 'email',
-  SMS = 'sms',
-  PUSH = 'push',
-  IN_APP = 'in_app',
-}
-
-export enum NotificationStatus {
-  PENDING = 'pending',
-  QUEUED = 'queued',
-  IN_PROGRESS = 'in_progress',
-  SENT = 'sent',
-  FAILED = 'failed',
-}
-
-export enum NotificationType {
-  USER_REGISTRATION = 'user_registration',
-  WELCOME = 'welcome',
-  PASSWORD_RESET = 'password_reset',
-  PROMOTION = 'promotion',
-}
 
 @Entity({ name: 'notifications' })
 export class Notification {
