@@ -1,7 +1,7 @@
 import { Body, Controller, Headers, Post, UseGuards } from '@nestjs/common';
+import { isUUID } from 'class-validator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { NOTIFICATION_QUEUE } from 'src/shared/config/index.config';
-import { SuccessMessage } from 'src/shared/decorators/success.message.decorator';
 import { CurrentUser } from 'src/shared/decorators/user.decorator';
 import { BadRequestException } from 'src/shared/exceptions/domain.exceptions';
 import { ResponseBuilder } from 'src/shared/utils/api-response.builder';
@@ -14,7 +14,6 @@ export class NotificationsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  @SuccessMessage('Notification processing started')
   async sendNotification(
     @CurrentUser() user,
     @Body() notificationDto: SendNotificationDto,
@@ -31,9 +30,9 @@ export class NotificationsController {
       );
     }
 
-    // if (!isUUID(idempotencyKey)) {
-    //   throw new BadRequestException('Idempotency key must be a valid UUID');
-    // }
+    if (!isUUID(idempotencyKey)) {
+      throw new BadRequestException('Idempotency key must be a valid UUID');
+    }
     const resp = await this.notificationsService.sendNotification(
       dto,
       idempotencyKey,
