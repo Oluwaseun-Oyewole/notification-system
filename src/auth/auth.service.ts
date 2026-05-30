@@ -13,7 +13,6 @@ import { SessionsService } from 'src/sessions/sessions.service';
 import {
   NotificationChannel,
   NotificationStatus,
-  NotificationType,
 } from 'src/shared/enums/index.enums';
 import {
   BadRequestException,
@@ -53,7 +52,6 @@ export class AuthService {
 
       const notification = manager.create(Notification, {
         userId: user.id,
-        type: NotificationType.EMAIL,
         channel: NotificationChannel.EMAIL,
         status: NotificationStatus.PENDING,
 
@@ -82,7 +80,6 @@ export class AuthService {
       });
       return { token: verifyToken, email: data.email };
     });
-    console.log({ result });
     return result;
   }
 
@@ -142,7 +139,6 @@ export class AuthService {
     await this.dataSource.transaction(async (manager) => {
       const notification = manager.create(Notification, {
         userId: user.id,
-        type: NotificationType.EMAIL,
         channel: NotificationChannel.EMAIL,
         status: NotificationStatus.PENDING,
         payload: {

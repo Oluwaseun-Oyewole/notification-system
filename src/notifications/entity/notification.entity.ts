@@ -1,28 +1,15 @@
+import { BaseEntity } from 'src/shared/entity/BaseEntity';
 import {
   NotificationChannel,
   NotificationStatus,
-  NotificationType,
 } from 'src/shared/enums/index.enums';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  Index,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity, Index } from 'typeorm';
 
 @Entity({ name: 'notifications' })
-export class Notification {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class Notification extends BaseEntity {
   @Index()
   @Column({ name: 'user_id' })
   userId: string;
-
-  @Column({ type: 'enum', enum: NotificationType })
-  type: NotificationType;
 
   @Column({ type: 'enum', enum: NotificationChannel })
   channel: NotificationChannel;
@@ -49,10 +36,4 @@ export class Notification {
 
   @Column({ nullable: true, name: 'sent_at', type: 'timestamptz' })
   sentAt: Date;
-
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
 }

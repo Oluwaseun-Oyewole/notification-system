@@ -5,21 +5,13 @@ import {
   IsObject,
   IsOptional,
   IsString,
-  IsUUID,
 } from 'class-validator';
-import {
-  NotificationChannel,
-  NotificationType,
-} from 'src/shared/enums/index.enums';
+import { NotificationChannel } from 'src/shared/enums/index.enums';
 
 export class SendNotificationDto {
-  @IsUUID()
-  @IsNotEmpty()
-  userId: string;
-
-  @IsEnum(NotificationType)
-  @IsNotEmpty()
-  type: NotificationType;
+  // @IsUUID()
+  // @IsNotEmpty()
+  // userId: string;
 
   @IsEnum(NotificationChannel)
   @IsOptional()

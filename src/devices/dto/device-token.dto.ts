@@ -15,10 +15,6 @@ export class RegisterDeviceTokenDto {
   @IsEnum(NotificationChannel)
   @IsOptional()
   provider?: NotificationChannel;
-
-  @IsString()
-  @IsOptional()
-  deviceId?: string;
 }
 
 export class RemoveDeviceTokenDto {

@@ -39,7 +39,6 @@ export class OutboxEvent {
   })
   eventType: EventType;
 
-  // Snapshot of what to enqueue — decoupled from the notification row
   @Column({ type: 'jsonb' })
   payload: Record<string, any>;
 

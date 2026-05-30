@@ -93,7 +93,6 @@ export class TokenService {
     family: string,
   ): Promise<boolean> {
     const key = REDIS_KEYS.REFRESH_TOKEN(userId, family);
-    console.log({ key });
     const record = await this.redisService.get<RefreshTokenRecord>(key);
 
     if (!record) return false;

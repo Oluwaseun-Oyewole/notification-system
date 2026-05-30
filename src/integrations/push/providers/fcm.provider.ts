@@ -14,12 +14,18 @@ export class FcmProvider implements OnModuleInit {
 
   constructor(private readonly config: ConfigService) {}
 
-  onModuleInit(): void {
+  onModuleInit() {
+    if (admin.apps.length) return;
+
+    const privateKey = this.config
+      .get<string>('PRIVATE_KEY')
+      ?.replace(/\\n/g, '\n');
+
     this.app = admin.initializeApp({
       credential: admin.credential.cert({
-        projectId: this.config.get<string>('firebase.projectId'),
-        clientEmail: this.config.get<string>('firebase.clientEmail'),
-        privateKey: this.config.get<string>('firebase.privateKey'),
+        projectId: this.config.get<string>('PROJECT_ID'),
+        clientEmail: this.config.get<string>('CLIENT_EMAIL'),
+        privateKey: privateKey,
       }),
     });
 

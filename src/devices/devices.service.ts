@@ -15,43 +15,42 @@ export class DevicesService {
 
   async registerToken(userId: string, dto: RegisterDeviceTokenDto) {
     return this.dataSource.transaction(async (manager) => {
-      const tokenRepo = manager.getRepository(DeviceToken);
+      const deviceTokenRepo = manager.getRepository(DeviceToken);
 
-      const existing = await tokenRepo.findOne({
+      const existing = await deviceTokenRepo.findOne({
         where: { token: dto.token },
       });
 
       if (existing) {
         if (existing.userId === userId) {
-          const updated = tokenRepo.merge(existing, {
+          const updated = deviceTokenRepo.merge(existing, {
             platform: dto.platform,
             provider: dto.provider || existing.provider,
-            deviceId: dto.deviceId || existing.deviceId,
+            token: dto.token || existing.token,
             isActive: true,
             lastSeenAt: new Date(),
           });
-          return tokenRepo.save(updated);
+          return deviceTokenRepo.save(updated);
         } else {
-          // Different user — deactivate old
-          await tokenRepo.update(
+          await deviceTokenRepo.update(
             { id: existing.id },
             { isActive: false, invalidatedAt: new Date() },
           );
         }
       }
 
-      const entity = tokenRepo.create({
+      const entity = deviceTokenRepo.create({
         ...dto,
         userId,
         isActive: true,
         lastSeenAt: new Date(),
       });
 
-      return tokenRepo.save(entity);
+      return deviceTokenRepo.save(entity);
     });
   }
 
-  async unregister(id: string, userId: string): Promise<void> {
+  async unregisterToken(id: string, userId: string) {
     const device = await this.deviceTokenRepository.findOne({
       where: { id, userId },
     });
@@ -59,14 +58,13 @@ export class DevicesService {
     await this.deviceTokenRepository.softDelete(id);
   }
 
-  async getActiveTokensByUserId(userId: string) {
-    return this.deviceTokenRepository.find({
+  async getActiveTokenByUserId(userId: string) {
+    return this.deviceTokenRepository.findOne({
       where: { userId, isActive: true },
-      order: { updatedAt: 'DESC' },
     });
   }
 
-  async deactivateByToken(token: string): Promise<void> {
+  async deactivateByToken(token: string) {
     await this.deviceTokenRepository
       .createQueryBuilder()
       .update(DeviceToken)

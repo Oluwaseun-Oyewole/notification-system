@@ -29,9 +29,6 @@ export class DeviceToken extends BaseEntity {
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
-  @Column({ nullable: true, name: 'device_id' })
-  deviceId?: string;
-
   @Column({ nullable: true, name: 'last_seen_at', type: 'timestamptz' })
   lastSeenAt?: Date;
 

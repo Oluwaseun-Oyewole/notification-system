@@ -21,12 +21,6 @@ export enum NotificationStatus {
   FAILED = 'failed',
 }
 
-export enum NotificationType {
-  EMAIL = 'email',
-  PUSH = 'push',
-  SMS = 'sms',
-}
-
 export enum DevicePlatform {
   IOS = 'ios',
   ANDROID = 'android',

@@ -37,7 +37,7 @@ export class EmailWorkerProcessor extends WorkerHost {
 
     if (notificationClaim.affected === 0) {
       this.logger.log(
-        `Notification ${notificationId} already sent/claimed — skipping job ${job.id}`,
+        `Notification ${notificationId} already sen  — skipping job ${job.id}`,
       );
       return;
     }
@@ -45,7 +45,6 @@ export class EmailWorkerProcessor extends WorkerHost {
     try {
       await this.mailService.send({ to, subject, template, context });
     } catch (error) {
-      // Revert to QUEUED so BullMQ retry picks it up cleanly
       await this.notificationRepository.update(
         { id: notificationId },
         { status: NotificationStatus.QUEUED },

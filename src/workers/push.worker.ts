@@ -53,43 +53,27 @@ export class PushWorkerProcessor extends WorkerHost {
       return;
     }
 
-    const activeTokens = await this.devicesService.getActiveTokensByUserId(
+    const activeToken = await this.devicesService.getActiveTokenByUserId(
       notification.userId,
     );
 
-    if (!activeTokens.length) {
+    try {
+      await this.pushService.send({
+        channel: notification.channel,
+        recipient: activeToken?.token,
+        title,
+        body,
+        data,
+      });
+    } catch (error) {
       await this.notificationRepository.update(
         { id: notificationId },
         {
-          status: NotificationStatus.FAILED,
-          failureReason: 'No active push device token found for user',
+          status: NotificationStatus.QUEUED,
         },
       );
+      throw error;
     }
-    const result = await this.pushService.send({
-      channel: notification.channel,
-      recipient: activeTokens[0].token,
-      title,
-      body,
-      data,
-    });
-
-    console.log({ result });
-
-    // const result = await this.pushService.sendMulticast({
-    //   tokens: activeTokens.map((token) => token.token),
-    //   title,
-    //   body,
-    //   data,
-    // });
-
-    // if (result.invalidTokens.length) {
-    //   await this.devicesService.deactivateByToken(result.invalidTokens[0]);
-    // }
-
-    // if (result.successCount === 0) {
-    //   throw new Error('Push provider did not deliver to any target token');
-    // }
   }
 
   @OnWorkerEvent('completed')
@@ -120,16 +104,17 @@ export class PushWorkerProcessor extends WorkerHost {
       );
       return;
     }
+    const notificationId = job.data.notificationId;
 
     const notification = await this.notificationRepository.findOne({
-      where: { id: job.data.notificationId },
+      where: { id: notificationId },
     });
 
     if (!notification) {
       return;
     }
 
-    await this.notificationRepository.update(job.data.notificationId, {
+    await this.notificationRepository.update(notificationId, {
       status: NotificationStatus.FAILED,
       retryCount: notification.retryCount + 1,
       failureReason: error instanceof Error ? error.message : String(error),
