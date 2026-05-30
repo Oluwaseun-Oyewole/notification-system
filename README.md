@@ -1,73 +1,184 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Nest Notification System
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Event-driven notification backend built with NestJS, PostgreSQL, Redis, BullMQ, and TypeORM.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This service provides:
 
-## Description
+- Authentication and session management.
+- Email verification via OTP.
+- Idempotent notification intake API.
+- Outbox-based asynchronous delivery pipeline.
+- Email and push (FCM) delivery workers.
+- Device token registration for push notifications.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Architecture Overview
 
-## Installation
+The service follows a transactional outbox pattern to keep API writes and background processing consistent.
 
-```bash
-$ npm install
+```mermaid
+flowchart LR
+  A[Client] --> B[HTTP API]
+  B --> C[(PostgreSQL notifications)]
+  B --> D[(PostgreSQL outbox_events)]
+  E[Cron Poller every 10s] --> D
+  E --> F[BullMQ Queues]
+  F --> G[Email Worker]
+  F --> H[Push Worker]
+  G --> I[SMTP Provider]
+  H --> J[Firebase FCM]
+  H --> K[(Device Tokens)]
+  B --> L[(Redis: OTP, Sessions, Refresh Families)]
 ```
 
-## Running the app
+### Delivery Flow
+
+1. Client calls notification endpoint with x-idempotency-key.
+2. API creates notification and outbox event in one DB transaction.
+3. Cron poller scans pending outbox rows every 10 seconds.
+4. Poller enqueues BullMQ jobs by channel (email or push).
+5. Workers claim and send; notification status moves through:
+   pending -> queued -> in_progress -> sent or failed.
+
+## Core Modules
+
+- auth: registration, login, OTP verification, token refresh, logout.
+- notifications: notification intake and idempotency handling.
+- outbox-event: polling and queue dispatch.
+- integrations/mail: SMTP + template rendering.
+- integrations/push: push abstraction + FCM provider.
+- devices: push token registration and invalidation.
+- otp: OTP generation, attempt tracking, validation.
+- sessions: session storage in Redis.
+- token: JWT issuing and refresh token family lifecycle.
+
+## Tech Stack
+
+- Runtime: Node.js 20+, NestJS 10
+- Database: PostgreSQL 16
+- Cache and state: Redis
+- Queue: BullMQ
+- ORM: TypeORM
+- Auth: JWT + Passport
+- Mail templating: Handlebars via @nestjs-modules/mailer
+- Push: firebase-admin (FCM)
+
+## Prerequisites
+
+- Node.js 20+
+- npm 10+
+- Docker and Docker Compose (recommended for local infra)
+- PostgreSQL and Redis (if running without Docker)
+
+## Quick Start
+
+### Option A: Docker Compose (recommended)
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+docker compose up --build
 ```
 
-## Test
+Services started:
+
+- API: http://localhost:3005
+- Swagger: http://localhost:3005/api
+- PostgreSQL: localhost:5432
+- pgAdmin: http://localhost:8080
+- Redis: localhost:6379
+- RedisInsight: http://localhost:5540
+
+### Option B: Local Node process
+
+1. Start PostgreSQL and Redis.
+2. Install dependencies.
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm ci
 ```
 
-## Support
+3. Configure .env.
+4. Start app.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+npm run start:dev
+```
 
-## Stay in touch
+## Scripts
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+# app lifecycle
+npm run start
+npm run start:dev
+npm run start:prod
 
-## License
+# build and quality
+npm run build
+npm run lint
+npm run format
 
-Nest is [MIT licensed](LICENSE).
+
+# migrations
+npm run migration:generate
+npm run migration:create
+npm run migration:run
+npm run migration:revert
+npm run migration:show
+```
+
+## API Surface
+
+Base path:
+
+- /api/v1
+
+Swagger:
+
+- /api
+
+### Health
+
+- GET /
+
+### Auth
+
+- POST /api/v1/auth/register
+- POST /api/v1/auth/login
+- POST /api/v1/auth/verify
+- POST /api/v1/auth/resend-otp
+- POST /api/v1/auth/logout
+- POST /api/v1/auth/refresh-token
+
+### Notification Intake
+
+- POST /api/v1/notification
+
+Headers:
+
+- Authorization: Bearer access_token
+- x-idempotency-key: UUID (required)
+
+### Device Tokens
+
+- POST /api/v1/devices/push-token
+- DELETE /api/v1/devices/push-token
+
+## Delivery Reliability and Idempotency
+
+- Notification intake is idempotent by correlationId from x-idempotency-key.
+- Unique conflict handling returns existing notification record.
+- Worker retries are enabled with exponential backoff.
+- Final failures persist error details and increment retry counters.
+- Outbox records are independently tracked as pending, processed, or failed.
+
+## Operational Notes
+
+- BullMQ default attempts: 3.
+- Outbox poll interval: every 10 seconds.
+- Push worker concurrency: 5.
+- Email worker concurrency: 3.
+- CORS is currently open to all origins.
+
+## Testing
+
+The repository includes:
+
+- A shell runner script for manual flow checks.
